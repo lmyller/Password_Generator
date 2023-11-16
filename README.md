@@ -1,4 +1,4 @@
-# password_generator
+# Password Generator
 
 Gerador de senhas
 
