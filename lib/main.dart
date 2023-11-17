@@ -1,4 +1,4 @@
-import 'dart:developer' as developer;
+import 'package:flutter/services.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -12,7 +12,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: ThemeData(
+        brightness: Brightness.dark,
+      ),
       home: HomePage(),
     );
   }
@@ -51,18 +54,27 @@ class _GeneratePasswordState extends State<GeneratePassword> {
 
   void generatePassword() {
     FocusScope.of(context).unfocus();
-
     List<String> characters = [];
     String text = _textController.text;
 
+    if (int.parse(text) > 20 || int.parse(text) < 1){
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Selecione entre 1 a 20 caracteres')));
+
+      return;
+    }
+
     for (var i = 0; i < int.parse(text); i++) {
       if (checkedNumber) {
-        int random = Random().nextInt(94) + 33; // ASCII range for symbols, numbers, uppercase, and lowercase letters
+        int random = Random().nextInt(94) +
+            33; // ASCII range for symbols, numbers, uppercase, and lowercase letters
         characters.add(String.fromCharCode(random));
       } else {
         while (true) {
-          int random = Random().nextInt(74) + 48; // ASCII range for symbols, uppercase, and lowercase letters (excluding numbers)
-          if ((random >= 48 && random <= 57) || (random >= 65 && random <= 90) || (random >= 97 && random <= 122)) {
+          int random = Random().nextInt(74) + 48;
+          if ((random >= 48 && random <= 57) ||
+              (random >= 65 && random <= 90) ||
+              (random >= 97 && random <= 122)) {
             characters.add(String.fromCharCode(random));
             break;
           }
@@ -92,7 +104,16 @@ class _GeneratePasswordState extends State<GeneratePassword> {
         InputTextWidget(controller: _textController),
         const Padding(padding: EdgeInsets.only(bottom: 30)),
         ElevatedButton(
-          onPressed: generatePassword,
+          onPressed: () {
+            if (_textController.text.isNotEmpty) {
+              generatePassword();
+            }
+            else{
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Insira a quantidade de caracteres')),
+              );
+            }
+            },
           style: TextButton.styleFrom(
             backgroundColor: Colors.black87,
             minimumSize: const Size(350, 60),
@@ -109,15 +130,23 @@ class _GeneratePasswordState extends State<GeneratePassword> {
         ),
         const Padding(padding: EdgeInsets.only(bottom: 30)),
         if (password.isNotEmpty)
-          Text(
-            password,
-            style: const TextStyle(
-              fontFamily: "sans serif",
-              fontWeight: FontWeight.bold,
-              fontSize: 25,
-              color: Colors.black87,
-            ),
-          )
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Padding(padding: EdgeInsets.only(left: 10)),
+              Text(
+                password,
+                style: const TextStyle(
+                  fontFamily: "sans serif",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25,
+                  color: Colors.white,
+                  leadingDistribution: TextLeadingDistribution.proportional
+                ),
+              ),
+              CopyButton(password: password),
+            ],
+          ),
       ],
     );
   }
@@ -171,13 +200,14 @@ class InputTextWidget extends StatelessWidget {
         contentPadding: EdgeInsets.only(left: 15),
         labelText: 'Quantidade de caracteres',
         labelStyle: TextStyle(
-          color: Colors.black87,
+          color: Colors.white,
           fontSize: 25,
           fontWeight: FontWeight.bold,
           fontFamily: "sans serif",
         ),
+        border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 10)),
         focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black87),
+          borderSide: BorderSide(color: Colors.white),
         ),
       ),
       style: const TextStyle(
@@ -185,6 +215,25 @@ class InputTextWidget extends StatelessWidget {
         fontWeight: FontWeight.bold,
         fontFamily: "sans serif",
       ),
+    );
+  }
+}
+
+class CopyButton extends StatelessWidget {
+  final String password;
+
+  const CopyButton({Key? key, required this.password}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.copy),
+      onPressed: () {
+        Clipboard.setData(ClipboardData(text: password));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Senha copiada')),
+        );
+      },
     );
   }
 }
