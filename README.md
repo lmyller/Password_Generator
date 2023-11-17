@@ -1,6 +1,6 @@
-# password_generator
+# Password Generator
 
-Gerador de senhas
+Gerador de senhas usando flutter
 
 ## Getting Started
 
